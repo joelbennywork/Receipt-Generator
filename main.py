@@ -3,7 +3,7 @@ import datetime as dt
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
-import docx
+from docx import document
 from docx2pdf import convert
 
 class InvoiceAutomation:
@@ -110,7 +110,7 @@ class InvoiceAutomation:
             messagebox.showerror(title='Error', message='Invalid amount or price!')
             return
     
-    for paragraph in list(doc.paragraphs):
+    for paragraph in list(docx.paragraphs):
         for old_text, new_text in replacements.items():
             self.replace_text(paragrph, old_text, new_text)
     
