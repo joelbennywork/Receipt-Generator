@@ -3,7 +3,7 @@ import datetime as dt
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
-from docx import document
+import docx
 from docx2pdf import convert
 
 class InvoiceAutomation:
