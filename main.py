@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
 import docx
-from docs2pdf import convert
+from docx2pdf import convert
 
 class InvoiceAutomation:
 
