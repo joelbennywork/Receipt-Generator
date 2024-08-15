@@ -89,26 +89,26 @@ class InvoiceAutomation:
 
         selected_payment_method = self.payment_methods[self.payment_method.get()]
 
-    try:
-        replacements = {
-            "[Date]": dt.datetime.today().strftime('%d-%m-$Y'),
-            "[Partner]": self.partner_entry.get(),
-            "[Partner Street]": self.partner_street_entry.get(),
-            "[Partner ZIP_City_Country]": self.partner_zip_city_country.get(),
-            "[Invoice Number]": self.invoice_number_entry.get(),
-            "[Service Description]": self.service_description_entry.get(),
-            "[Amount]": self.service_amount_entry(),
-            "[Single Price]": f"£{float(self.partner_entry.get():.2f)}",
-            "[Full Price]": f"£{float(self.service_amount_entry.get()) * float(self.service_single_price_entry.get()):.2f}"
-            "[Recipient]": selected_payment_method['Recipient'],
-            "[Bank]": selected_payment_method['Bank'],
-            "[IBAN]": selected_payment_method['IBAN'],
-            "[BIC]": selected_payment_method['BIC']
-        }
+        try:
+            replacements = {
+                "[Date]": dt.datetime.today().strftime('%d-%m-$Y'),
+                "[Partner]": self.partner_entry.get(),
+                "[Partner Street]": self.partner_street_entry.get(),
+                "[Partner ZIP_City_Country]": self.partner_zip_city_country.get(),
+                "[Invoice Number]": self.invoice_number_entry.get(),
+                "[Service Description]": self.service_description_entry.get(),
+                "[Amount]": self.service_amount_entry(),
+                "[Single Price]": f"£{float(self.partner_entry.get()):.2f}",
+                "[Full Price]": f"£{float(self.service_amount_entry.get()) * float(self.service_single_price_entry.get()):.2f}",
+                "[Recipient]": selected_payment_method['Recipient'],
+                "[Bank]": selected_payment_method['Bank'],
+                "[IBAN]": selected_payment_method['IBAN'],
+                "[BIC]": selected_payment_method['BIC']
+            }
 
-    except ValueError:
-        messagebox.showerror(title='Error', message='Invalid amount or price!')
-        return
+        except ValueError:
+            messagebox.showerror(title='Error', message='Invalid amount or price!')
+            return
     
     for paragraph in list(doc.paragraphs):
         for old_text, new_text in replacements.items():
