@@ -1,132 +1,134 @@
-import os, subprocess
-import datetime as dt
-import tkinter as tk
-from tkinter import filedialog
+import tkinter
+from tkinter import ttk
+from docxtpl import DocxTemplate
+import datetime
 from tkinter import messagebox
-import docx
-from docx2pdf import convert
 
-class InvoiceAutomation:
+def clear_item():
+    qty_spinbox.delete(0, tkinter.END)
+    qty_spinbox.insert(0, "1")
+    desc_entry.delete(0, tkinter.END)
+    price_spinbox.delete(0, tkinter.END)
+    price_spinbox.insert(0, "0.0")
 
-    def __init__(self):
-        self.root = tk.Tk()
-        self.root.title('Invoice Automation')
-        self.root.geometry('600x600')
-
-        self.partner_label = tk.Label(self.root, text='Name')
-        self.partner_entry = tk.Entry(self.root)
-        self.partner_street_label = tk.Label(self.root, text='Street')
-        self.partner_street_entry = tk.Entry(self.root)
-        self.partner_zip_city_country_label = tk.Label(self.root, text='City & Country')
-        self.partner_zip_city_country_entry = tk.Entry(self.root)
-        self.invoice_number_label = tk.Label(self.root, text='Invoice Number')
-        self.invoice_number_entry = tk.Entry(self.root)
-        self.service_description_label = tk.Label(self.root, text='Service Description')
-        self.service_description_entry = tk.Entry(self.root)
-        self.service_amount_label = tk.Label(self.root, text='Service Amount')
-        self.service_amount_entry = tk.Entry(self.root)
-        self.service_single_price_label = tk.Label(self.root, text='Service Price')
-        self.service_single_price_entry = tk.Entry(self.root)
-        self.payment_method_label = tk.Label(self.root, text='Payment Method')
-
-        self.payment_methods = {
-            'Main Bank': {
-                'Recipient' : 'ICOG Tolworth',
-                'Bank' : 'MasterCard',
-                'IBAN' : '...',
-                'BIC': 'N/A'
-            },
-            'Second Bank': {
-                'Recipient' : 'ICOG Tolworth',
-                'Bank' : 'Visa',
-                'IBAN' : '...',
-                'BIC': 'N/A'
-            },
-            'Private Bank': {
-                'Recipient' : 'ICOG Tolworth',
-                'Bank' : 'Amex',
-                'IBAN' : '...',
-                'BIC': 'N/A'
-            }
-        }
-
-        self.payment_method = tk.StringVar(self.root)
-        self.payment_method.set('Main Bank')
-
-        self.payment_method_dropdown = tk.OptionMenu(self.root, self.payment_method, "Main Bank", "Second Bank", "Private Bank")
-        
-        self.create_button = tk.Button(self.root, text="Create Invoice", command=self.create_invoice)
-
-        padding_options = {'fill': 'x', 'expand': True, 'padx': 5, 'pady': 2}
-
-        self.partner_label.pack(padding_options)
-        self.partner_entry.pack(padding_options)
-        self.partner_street_label.pack(padding_options)
-        self.partner_street_entry.pack(padding_options)
-        self.partner_zip_city_country_label.pack(padding_options)
-        self.partner_zip_city_country_entry.pack(padding_options)
-        self.invoice_number_label.pack(padding_options)
-        self.invoice_number_entry.pack(padding_options)
-        self.service_description_label.pack(padding_options)
-        self.service_description_entry.pack(padding_options)
-        self.service_amount_label.pack(padding_options)
-        self.service_amount_entry.pack(padding_options)
-        self.service_single_price_label.pack(padding_options)
-        self.service_single_price_entry.pack(padding_options)
-        self.payment_method_label.pack(padding_options)
-        self.payment_method_dropdown.pack(padding_options)
-        self.create_button.pack(padding_options)
-
-        self.root.mainloop()
-
-    @staticmethod
-    def replace_text(paragraph, old_text, new_text):
-        if old_text in paragraph.text:
-            paragraph.text = paragraph.text.replace(old_text, new_text)
-
-    def create_invoice(self):
-        doc = docx.Document('template.docx')
-
-        selected_payment_method = self.payment_methods[self.payment_method.get()]
-
-        try:
-            replacements = {
-                "[Date]": dt.datetime.today().strftime('%d-%m-$Y'),
-                "[Partner]": self.partner_entry.get(),
-                "[Partner Street]": self.partner_street_entry.get(),
-                "[Partner ZIP_City_Country]": self.partner_zip_city_country.get(),
-                "[Invoice Number]": self.invoice_number_entry.get(),
-                "[Service Description]": self.service_description_entry.get(),
-                "[Amount]": self.service_amount_entry(),
-                "[Single Price]": f"£{float(self.partner_entry.get()):.2f}",
-                "[Full Price]": f"£{float(self.service_amount_entry.get()) * float(self.service_single_price_entry.get()):.2f}",
-                "[Recipient]": selected_payment_method['Recipient'],
-                "[Bank]": selected_payment_method['Bank'],
-                "[IBAN]": selected_payment_method['IBAN'],
-                "[BIC]": selected_payment_method['BIC']
-            }
-
-        except ValueError:
-            messagebox.showerror(title='Error', message='Invalid amount or price!')
-            return
+invoice_list = []
+def add_item():
+    qty = int(qty_spinbox.get())
+    desc = desc_entry.get()
+    price = float(price_spinbox.get())
+    line_total = qty*price
+    invoice_item = [qty, desc, price, line_total]
+    tree.insert('',0, values=invoice_item)
+    clear_item()
     
-    for paragraph in list(docx.paragraphs):
-        for old_text, new_text in replacements.items():
-            self.replace_text(paragrph, old_text, new_text)
+    invoice_list.append(invoice_item)
+
     
-    for table in doc.tables:
-        for rows in table.rows:
-            for cells in row.cells:
-                for paragraph in cell.paragraphs:
-                    for old_text, new_text in replacements.items():
-                        self.replace_text(paragrph, old_text, new_text)
+def new_invoice():
+    first_name_entry.delete(0, tkinter.END)
+    last_name_entry.delete(0, tkinter.END)
+    phone_entry.delete(0, tkinter.END)
+    clear_item()
+    tree.delete(*tree.get_children())
+    
+    invoice_list.clear()
+    
+def generate_invoice():
+    doc = DocxTemplate("invoice_template.docx")
+    name = first_name_entry.get()+last_name_entry.get()
+    phone = phone_entry.get()
+    subtotal = sum(item[3] for item in invoice_list) 
+    salestax = 0.1
+    total = subtotal*(1-salestax)
+    
+    doc.render({"name":name, 
+            "phone":phone,
+            "invoice_list": invoice_list,
+            "subtotal":subtotal,
+            "salestax":str(salestax*100)+"%",
+            "total":total})
+    
+    doc_name = "new_invoice" + name + datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S") + ".docx"
+    doc.save(doc_name)
+    
+    messagebox.showinfo("Invoice Complete", "Invoice Complete")
+    
+    new_invoice()
 
-    save_path = filedialog.asksaveasfilename(defaultextension='.pdf', filetypes=[('PDF documents', '*.pdf')])
-            
-    convert('filled.docx', save_path)
 
-    messagebox.showinfo('Success', 'Invoice created and saved successfully!')
+    
+
+window = tkinter.Tk()
+window.title("Invoice Generator Form")
+
+frame = tkinter.Frame(window)
+frame.pack(padx=20, pady=10)
+
+first_name_label = tkinter.Label(frame, text="First Name")
+first_name_label.grid(row=0, column=0)
+last_name_label = tkinter.Label(frame, text="Last Name")
+last_name_label.grid(row=0, column=1)
+
+first_name_entry = tkinter.Entry(frame)
+last_name_entry = tkinter.Entry(frame)
+first_name_entry.grid(row=1, column=0)
+last_name_entry.grid(row=1, column=1)
+
+phone_label = tkinter.Label(frame, text="Phone")
+phone_label.grid(row=0, column=2)
+phone_entry = tkinter.Entry(frame)
+phone_entry.grid(row=1, column=2)
+
+qty_label = tkinter.Label(frame, text="Qty")
+qty_label.grid(row=2, column=0)
+qty_spinbox = tkinter.Spinbox(frame, from_=1, to=100)
+qty_spinbox.grid(row=3, column=0)
+
+desc_label = tkinter.Label(frame, text="Description")
+desc_label.grid(row=2, column=1)
+desc_entry = tkinter.Entry(frame)
+desc_entry.grid(row=3, column=1)
+
+price_label = tkinter.Label(frame, text="Unit Price")
+price_label.grid(row=2, column=2)
+price_spinbox = tkinter.Spinbox(frame, from_=0.0, to=500, increment=0.5)
+price_spinbox.grid(row=3, column=2)
+
+add_item_button = tkinter.Button(frame, text = "Add item", command = add_item)
+add_item_button.grid(row=4, column=2, pady=5)
+
+columns = ('qty', 'desc', 'price', 'total')
+tree = ttk.Treeview(frame, columns=columns, show="headings")
+tree.heading('qty', text='Qty')
+tree.heading('desc', text='Description')
+tree.heading('price', text='Unit Price')
+tree.heading('total', text="Total")
+
+    
+tree.grid(row=5, column=0, columnspan=3, padx=20, pady=10)
 
 
-if __name__ == "__main__":
-    InvoiceAutomation()
+save_invoice_button = tkinter.Button(frame, text="Generate Invoice", command=generate_invoice)
+save_invoice_button.grid(row=6, column=0, columnspan=3, sticky="news", padx=20, pady=5)
+new_invoice_button = tkinter.Button(frame, text="New Invoice", command=new_invoice)
+new_invoice_button.grid(row=7, column=0, columnspan=3, sticky="news", padx=20, pady=5)
+
+
+window.mainloop()
+
+from docxtpl import DocxTemplate
+
+doc = DocxTemplate("invoice_template.docx")
+
+invoice_list = [[2, "pen", 0.5, 1],
+                [1, "paper pack", 5, 5],
+                [2, "notebook", 2, 4]]
+
+
+doc.render({"name":"john", 
+            "phone":"555-55555",
+            "invoice_list": invoice_list,
+            "subtotal":10,
+            "salestax":"10%",
+            "total":9})
+doc.save("new_invoice.docx")
