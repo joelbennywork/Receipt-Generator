@@ -1,134 +1,136 @@
-import tkinter
+import tkinter as tk
 from tkinter import ttk
-from docxtpl import DocxTemplate
-import datetime
-from tkinter import messagebox
+from openpyxl import load_workbook
 
-def clear_item():
-    qty_spinbox.delete(0, tkinter.END)
-    qty_spinbox.insert(0, "1")
-    desc_entry.delete(0, tkinter.END)
-    price_spinbox.delete(0, tkinter.END)
-    price_spinbox.insert(0, "0.0")
+# Load the Excel file
+file_path = 'invoice.xlsx'
+wb = load_workbook(file_path)
+ws = wb.active
 
-invoice_list = []
-def add_item():
-    qty = int(qty_spinbox.get())
-    desc = desc_entry.get()
-    price = float(price_spinbox.get())
-    line_total = qty*price
-    invoice_item = [qty, desc, price, line_total]
-    tree.insert('',0, values=invoice_item)
-    clear_item()
-    
-    invoice_list.append(invoice_item)
+# Create the main window
+root = tk.Tk()
+root.title("Excel Editor")
+root.geometry("1000x600")
 
-    
-def new_invoice():
-    first_name_entry.delete(0, tkinter.END)
-    last_name_entry.delete(0, tkinter.END)
-    phone_entry.delete(0, tkinter.END)
-    clear_item()
-    tree.delete(*tree.get_children())
-    
-    invoice_list.clear()
-    
-def generate_invoice():
-    doc = DocxTemplate("invoice_template.docx")
-    name = first_name_entry.get()+last_name_entry.get()
-    phone = phone_entry.get()
-    subtotal = sum(item[3] for item in invoice_list) 
-    salestax = 0.1
-    total = subtotal*(1-salestax)
-    
-    doc.render({"name":name, 
-            "phone":phone,
-            "invoice_list": invoice_list,
-            "subtotal":subtotal,
-            "salestax":str(salestax*100)+"%",
-            "total":total})
-    
-    doc_name = "new_invoice" + name + datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S") + ".docx"
-    doc.save(doc_name)
-    
-    messagebox.showinfo("Invoice Complete", "Invoice Complete")
-    
-    new_invoice()
+# Create a toolbar
+toolbar = tk.Frame(root)
+toolbar.pack(side=tk.TOP, fill=tk.X)
 
+# Create a frame for entry widgets
+entry_frame = tk.Frame(root)
+entry_frame.pack(side=tk.TOP, fill=tk.X)
 
-    
+# Undo and redo stacks
+undo_stack = []
+redo_stack = []
 
-window = tkinter.Tk()
-window.title("Invoice Generator Form")
+def add_row():
+    new_row = [len(tree.get_children()) + 1] + ['']*7
+    tree.insert('', 'end', values=new_row)
+    undo_stack.append(('add', new_row))
 
-frame = tkinter.Frame(window)
-frame.pack(padx=20, pady=10)
+def delete_row():
+    selected_item = tree.selection()[0]
+    values = tree.item(selected_item)['values']
+    tree.delete(selected_item)
+    undo_stack.append(('delete', values))
 
-first_name_label = tkinter.Label(frame, text="First Name")
-first_name_label.grid(row=0, column=0)
-last_name_label = tkinter.Label(frame, text="Last Name")
-last_name_label.grid(row=0, column=1)
+def edit_row():
+    selected_item = tree.selection()[0]
+    old_values = tree.item(selected_item)['values']
+    new_values = [entry.get() if entry.get() else old_values[i] for i, entry in enumerate(entries)]
+    tree.item(selected_item, values=new_values)
+    undo_stack.append(('edit', old_values, new_values))
 
-first_name_entry = tkinter.Entry(frame)
-last_name_entry = tkinter.Entry(frame)
-first_name_entry.grid(row=1, column=0)
-last_name_entry.grid(row=1, column=1)
+def undo():
+    if undo_stack:
+        action = undo_stack.pop()
+        if action[0] == 'add':
+            for item in tree.get_children():
+                if tree.item(item)['values'] == action[1]:
+                    tree.delete(item)
+                    break
+        elif action[0] == 'delete':
+            tree.insert('', 'end', values=action[1])
+        elif action[0] == 'edit':
+            for item in tree.get_children():
+                if tree.item(item)['values'] == action[2]:
+                    tree.item(item, values=action[1])
+                    break
+        redo_stack.append(action)
 
-phone_label = tkinter.Label(frame, text="Phone")
-phone_label.grid(row=0, column=2)
-phone_entry = tkinter.Entry(frame)
-phone_entry.grid(row=1, column=2)
+def redo():
+    if redo_stack:
+        action = redo_stack.pop()
+        if action[0] == 'add':
+            tree.insert('', 'end', values=action[1])
+        elif action[0] == 'delete':
+            for item in tree.get_children():
+                if tree.item(item)['values'] == action[1]:
+                    tree.delete(item)
+                    break
+        elif action[0] == 'edit':
+            for item in tree.get_children():
+                if tree.item(item)['values'] == action[1]:
+                    tree.item(item, values=action[2])
+                    break
+        undo_stack.append(action)
 
-qty_label = tkinter.Label(frame, text="Qty")
-qty_label.grid(row=2, column=0)
-qty_spinbox = tkinter.Spinbox(frame, from_=1, to=100)
-qty_spinbox.grid(row=3, column=0)
+add_button = tk.Button(toolbar, text="Add Row", command=add_row)
+add_button.pack(side=tk.LEFT, padx=2, pady=2)
 
-desc_label = tkinter.Label(frame, text="Description")
-desc_label.grid(row=2, column=1)
-desc_entry = tkinter.Entry(frame)
-desc_entry.grid(row=3, column=1)
+delete_button = tk.Button(toolbar, text="Delete Row", command=delete_row)
+delete_button.pack(side=tk.LEFT, padx=2, pady=2)
 
-price_label = tkinter.Label(frame, text="Unit Price")
-price_label.grid(row=2, column=2)
-price_spinbox = tkinter.Spinbox(frame, from_=0.0, to=500, increment=0.5)
-price_spinbox.grid(row=3, column=2)
+edit_button = tk.Button(toolbar, text="Edit Row", command=edit_row)
+edit_button.pack(side=tk.LEFT, padx=2, pady=2)
 
-add_item_button = tkinter.Button(frame, text = "Add item", command = add_item)
-add_item_button.grid(row=4, column=2, pady=5)
+undo_button = tk.Button(toolbar, text="Undo", command=undo)
+undo_button.pack(side=tk.LEFT, padx=2, pady=2)
 
-columns = ('qty', 'desc', 'price', 'total')
-tree = ttk.Treeview(frame, columns=columns, show="headings")
-tree.heading('qty', text='Qty')
-tree.heading('desc', text='Description')
-tree.heading('price', text='Unit Price')
-tree.heading('total', text="Total")
+redo_button = tk.Button(toolbar, text="Redo", command=redo)
+redo_button.pack(side=tk.LEFT, padx=2, pady=2)
 
-    
-tree.grid(row=5, column=0, columnspan=3, padx=20, pady=10)
+# Create the treeview
+columns = ['Row Number'] + [ws.cell(row=1, column=i).value for i in range(1, 9)]
+tree = ttk.Treeview(root, columns=columns, show='headings')
+tree.pack(fill=tk.BOTH, expand=True)
 
+for col in columns:
+    tree.heading(col, text=col)
+    tree.column(col, width=100)
 
-save_invoice_button = tkinter.Button(frame, text="Generate Invoice", command=generate_invoice)
-save_invoice_button.grid(row=6, column=0, columnspan=3, sticky="news", padx=20, pady=5)
-new_invoice_button = tkinter.Button(frame, text="New Invoice", command=new_invoice)
-new_invoice_button.grid(row=7, column=0, columnspan=3, sticky="news", padx=20, pady=5)
+# Load data from Excel into the treeview
+for i, row in enumerate(ws.iter_rows(min_row=2, max_col=8, values_only=True), start=1):
+    tree.insert('', 'end', values=[i] + list(row))
 
+# Function to update column H with the sum of columns E to G
+def update_sums():
+    for row in tree.get_children():
+        values = tree.item(row)['values']
+        if all(isinstance(values[i], (int, float)) for i in range(5, 8)):
+            values[8] = sum(values[5:8])
+            tree.item(row, values=values)
 
-window.mainloop()
+tree.bind('<FocusOut>', lambda e: update_sums())
 
-from docxtpl import DocxTemplate
+# Create entry widgets for editing
+entries = []
+labels = ['Row Number'] + [ws.cell(row=1, column=i).value for i in range(1, 9)]
+for label in labels:
+    lbl = tk.Label(entry_frame, text=label)
+    lbl.pack(side=tk.LEFT, padx=2, pady=2)
+    entry = tk.Entry(entry_frame)
+    entry.pack(side=tk.LEFT, padx=2, pady=2)
+    entries.append(entry)
 
-doc = DocxTemplate("invoice_template.docx")
+def on_row_select(event):
+    selected_item = tree.selection()[0]
+    values = tree.item(selected_item)['values']
+    for i, entry in enumerate(entries):
+        entry.delete(0, tk.END)
+        entry.insert(0, values[i])
 
-invoice_list = [[2, "pen", 0.5, 1],
-                [1, "paper pack", 5, 5],
-                [2, "notebook", 2, 4]]
+tree.bind('<<TreeviewSelect>>', on_row_select)
 
-
-doc.render({"name":"john", 
-            "phone":"555-55555",
-            "invoice_list": invoice_list,
-            "subtotal":10,
-            "salestax":"10%",
-            "total":9})
-doc.save("new_invoice.docx")
+root.mainloop()
