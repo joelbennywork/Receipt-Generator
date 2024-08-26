@@ -19,7 +19,79 @@ def save_data(df):
 
 # Add row
 def add_row():
-    pass
+    def submit():
+        # Get data from entry fields
+        first_name = entry_first_name.get()
+        last_name = entry_last_name.get()
+        phone_number = entry_phone_number.get()
+        email = entry_email.get()
+        item1 = entry_item1.get()
+        item2 = entry_item2.get()
+        total_price = entry_total_price.get()
+
+        # Insert data into the table
+        tree = ttk.Treeview(root, columns=("First Name", "Last Name", "Phone", "Email", "Item 1", "Item 2", "Total Price"))
+        tree.heading("#0", text="ID")  # Optional: Set header for the first column (usually hidden)
+        tree.heading("First Name", text="First Name")
+
+        # Update the Excel file
+        df = load_data()
+        new_row = {
+            "First Name": first_name,
+            "Last Name": last_name,
+            "Phone Number": phone_number,
+            "Email": email,
+            "Item 1": item1,
+            "Item 2": item2,
+            "Total Price": total_price
+        }
+        df = df.append(new_row, ignore_index=True)
+        save_data(df)
+
+        # Close the add row window
+        add_window.destroy()
+
+    # Create a new window for adding a row
+    add_window = tk.Toplevel(root)
+    add_window.title("Add Row")
+
+    # Create entry fields for each column
+    tk.Label(add_window, text="First Name").grid(row=0, column=0)
+    entry_first_name = tk.Entry(add_window)
+    entry_first_name.grid(row=0, column=1)
+
+    tk.Label(add_window, text="Last Name").grid(row=1, column=0)
+    entry_last_name = tk.Entry(add_window)
+    entry_last_name.grid(row=1, column=1)
+
+    tk.Label(add_window, text="Phone Number").grid(row=2, column=0)
+    entry_phone_number = tk.Entry(add_window)
+    entry_phone_number.grid(row=2, column=1)
+
+    tk.Label(add_window, text="Email").grid(row=3, column=0)
+    entry_email = tk.Entry(add_window)
+    entry_email.grid(row=3, column=1)
+
+    tk.Label(add_window, text="Item 1").grid(row=4, column=0)
+    entry_item1 = tk.Entry(add_window)
+    entry_item1.grid(row=4, column=1)
+
+    tk.Label(add_window, text="Item 2").grid(row=5, column=0)
+    entry_item2 = tk.Entry(add_window)
+    entry_item2.grid(row=5, column=1)
+
+    tk.Label(add_window, text="Total Price").grid(row=6, column=0)
+    entry_total_price = tk.Entry(add_window)
+    entry_total_price.grid(row=6, column=1)
+
+    # Create a submit button
+    submit_button = tk.Button(add_window, text="Submit", command=submit)
+    submit_button.grid(row=7, columnspan=2)
+
+    add_btn = tk.Button(add_window, text="Add Row")
+    add_btn.config(command=add_row)
+
+    
 
 # Delete row
 def delete_row():
