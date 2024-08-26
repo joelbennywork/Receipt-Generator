@@ -30,7 +30,9 @@ def add_row():
         total_price = entry_total_price.get()
 
         # Insert data into the table
-        tree.insert("", "end", values=(first_name, last_name, phone_number, email, item1, item2, total_price))
+        tree = ttk.Treeview(root, columns=("First Name", "Last Name", "Phone", "Email", "Item 1", "Item 2", "Total Price"))
+        tree.heading("#0", text="ID")  # Optional: Set header for the first column (usually hidden)
+        tree.heading("First Name", text="First Name")
 
         # Update the Excel file
         df = load_data()
@@ -86,9 +88,10 @@ def add_row():
     submit_button = tk.Button(add_window, text="Submit", command=submit)
     submit_button.grid(row=7, columnspan=2)
 
-# Add the add_row function to the Add Row button in the toolbar
-add_btn.config(command=add_row)
+    add_btn = tk.Button(add_window, text="Add Row")
+    add_btn.config(command=add_row)
 
+    
 
 # Delete row
 def delete_row():
