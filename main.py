@@ -51,78 +51,120 @@ def add_row(self):
         # Close the add row window
         add_window.destroy()
 
-        # Create a new window for adding a row
-        add_window = tk.Toplevel(self.root)
-        add_window.title("Add Row")
+    # Create a new window for adding a row
+    add_window = tk.Toplevel(self.root)
+    add_window.title("Add Row")
 
-        # Create entry fields for each column
-        tk.Label(add_window, text="First Name").grid(row=0, column=0)
-        entry_first_name = tk.Entry(add_window)
-        entry_first_name.grid(row=0, column=1)
+    # Create entry fields for each column
+    tk.Label(add_window, text="First Name").grid(row=0, column=0)
+    entry_first_name = tk.Entry(add_window)
+    entry_first_name.grid(row=0, column=1)
 
-        tk.Label(add_window, text="Last Name").grid(row=1, column=0)
-        entry_last_name = tk.Entry(add_window)
-        entry_last_name.grid(row=1, column=1)
+    tk.Label(add_window, text="Last Name").grid(row=1, column=0)
+    entry_last_name = tk.Entry(add_window)
+    entry_last_name.grid(row=1, column=1)
 
-        tk.Label(add_window, text="Phone Number").grid(row=2, column=0)
-        entry_phone_number = tk.Entry(add_window)
-        entry_phone_number.grid(row=2, column=1)
+    tk.Label(add_window, text="Phone Number").grid(row=2, column=0)
+    entry_phone_number = tk.Entry(add_window)
+    entry_phone_number.grid(row=2, column=1)
 
-        tk.Label(add_window, text="Email").grid(row=3, column=0)
-        entry_email = tk.Entry(add_window)
-        entry_email.grid(row=3, column=1)
+    tk.Label(add_window, text="Email").grid(row=3, column=0)
+    entry_email = tk.Entry(add_window)
+    entry_email.grid(row=3, column=1)
 
-        tk.Label(add_window, text="Item 1").grid(row=4, column=0)
-        entry_item1 = tk.Entry(add_window)
-        entry_item1.grid(row=4, column=1)
+    tk.Label(add_window, text="Item 1").grid(row=4, column=0)
+    entry_item1 = tk.Entry(add_window)
+    entry_item1.grid(row=4, column=1)
 
-        tk.Label(add_window, text="Item 2").grid(row=5, column=0)
-        entry_item2 = tk.Entry(add_window)
-        entry_item2.grid(row=5, column=1)
+    tk.Label(add_window, text="Item 2").grid(row=5, column=0)
+    entry_item2 = tk.Entry(add_window)
+    entry_item2.grid(row=5, column=1)
 
-        tk.Label(add_window, text="Total Price").grid(row=6, column=0)
-        entry_total_price = tk.Entry(add_window)
-        entry_total_price.grid(row=6, column=1)
+    tk.Label(add_window, text="Total Price").grid(row=6, column=0)
+    entry_total_price = tk.Entry(add_window)
+    entry_total_price.grid(row=6, column=1)
 
-        # Create a submit button
-        submit_button = tk.Button(add_window, text="Submit", command=submit)
-        submit_button.grid(row=7, columnspan=2)
-
-        add_btn = tk.Button(add_window, text="Add Row")
-        add_btn.config(command=add_row)
+    # Create a submit button
+    submit_button = tk.Button(add_window, text="Submit", command=submit)
+    submit_button.grid(row=7, columnspan=2)
 
 # Delete row
 def delete_row(self):
-        selected_item = self.tree.selection()[0]
-        self.tree.delete(selected_item)
-        df = load_data()
-        df = df.drop(df.index[int(selected_item)])
-        save_data(df)
+    selected_item = self.tree.selection()[0]
+    self.tree.delete(selected_item)
+    df = load_data()
+    df = df.drop(df.index[int(self.tree.index(selected_item))])
+    save_data(df)
 
 # Edit row
-def edit_row():
-    # Implement edit row functionality
-    pass
+def edit_row(self):
+    selected_item = self.tree.selection()[0]
+    values = self.tree.item(selected_item, "values")
 
-# Generate receipt
-def generate_receipt():
-    # Implement receipt generation functionality
-    pass
+    def submit():
+        # Get data from entry fields
+        first_name = entry_first_name.get()
+        last_name = entry_last_name.get()
+        phone_number = entry_phone_number.get()
+        email = entry_email.get()
+        item1 = entry_item1.get()
+        item2 = entry_item2.get()
+        total_price = entry_total_price.get()
 
-# Send to phone
-def send_to_phone():
-    # Implement send to phone functionality
-    pass
+        # Update the selected row in the table
+        self.tree.item(selected_item, values=(first_name, last_name, phone_number, email, item1, item2, total_price))
 
-# Send to email
-def send_to_email():
-    # Implement send to email functionality
-    pass
+        # Update the Excel file
+        df = load_data()
+        df.loc[int(self.tree.index(selected_item))] = [first_name, last_name, phone_number, email, item1, item2, total_price]
+        save_data(df)
 
-# Preview receipt
-def preview_receipt():
-    # Implement preview receipt functionality
-    pass
+        # Close the edit row window
+        edit_window.destroy()
+
+    # Create a new window for editing a row
+    edit_window = tk.Toplevel(self.root)
+    edit_window.title("Edit Row")
+
+    # Create entry fields for each column pre-filled with the selected row's data
+    tk.Label(edit_window, text="First Name").grid(row=0, column=0)
+    entry_first_name = tk.Entry(edit_window)
+    entry_first_name.grid(row=0, column=1)
+    entry_first_name.insert(0, values[0])
+
+    tk.Label(edit_window, text="Last Name").grid(row=1, column=0)
+    entry_last_name = tk.Entry(edit_window)
+    entry_last_name.grid(row=1, column=1)
+    entry_last_name.insert(0, values[1])
+
+    tk.Label(edit_window, text="Phone Number").grid(row=2, column=0)
+    entry_phone_number = tk.Entry(edit_window)
+    entry_phone_number.grid(row=2, column=1)
+    entry_phone_number.insert(0, values[2])
+
+    tk.Label(edit_window, text="Email").grid(row=3, column=0)
+    entry_email = tk.Entry(edit_window)
+    entry_email.grid(row=3, column=1)
+    entry_email.insert(0, values[3])
+
+    tk.Label(edit_window, text="Item 1").grid(row=4, column=0)
+    entry_item1 = tk.Entry(edit_window)
+    entry_item1.grid(row=4, column=1)
+    entry_item1.insert(0, values[4])
+
+    tk.Label(edit_window, text="Item 2").grid(row=5, column=0)
+    entry_item2 = tk.Entry(edit_window)
+    entry_item2.grid(row=5, column=1)
+    entry_item2.insert(0, values[5])
+
+    tk.Label(edit_window, text="Total Price").grid(row=6, column=0)
+    entry_total_price = tk.Entry(edit_window)
+    entry_total_price.grid(row=6, column=1)
+    entry_total_price.insert(0, values[6])
+
+    # Create a submit button
+    submit_button = tk.Button(edit_window, text="Submit", command=submit)
+    submit_button.grid(row=7, columnspan=2)
 
 # Main application
 class ReceiptGeneratorApp:
@@ -136,25 +178,25 @@ class ReceiptGeneratorApp:
         toolbar = tk.Frame(self.root)
         toolbar.pack(side=tk.TOP, fill=tk.X)
 
-        add_btn = tk.Button(toolbar, text="Add Row", command=add_row)
+        add_btn = tk.Button(toolbar, text="Add Row", command=lambda: add_row(self))
         add_btn.pack(side=tk.LEFT, padx=2, pady=2)
 
-        delete_btn = tk.Button(toolbar, text="Delete Row", command=delete_row)
+        delete_btn = tk.Button(toolbar, text="Delete Row", command=lambda: delete_row(self))
         delete_btn.pack(side=tk.LEFT, padx=2, pady=2)
 
-        edit_btn = tk.Button(toolbar, text="Edit Row", command=edit_row)
+        edit_btn = tk.Button(toolbar, text="Edit Row", command=lambda: edit_row(self))
         edit_btn.pack(side=tk.LEFT, padx=2, pady=2)
 
-        generate_btn = tk.Button(toolbar, text="Generate Receipts", command=generate_receipt)
+        generate_btn = tk.Button(toolbar, text="Generate Receipts")
         generate_btn.pack(side=tk.LEFT, padx=2, pady=2)
 
-        send_phone_btn = tk.Button(toolbar, text="Send to Phone", command=send_to_phone)
+        send_phone_btn = tk.Button(toolbar, text="Send to Phone")
         send_phone_btn.pack(side=tk.LEFT, padx=2, pady=2)
 
-        send_email_btn = tk.Button(toolbar, text="Send to Email", command=send_to_email)
+        send_email_btn = tk.Button(toolbar, text="Send to Email")
         send_email_btn.pack(side=tk.LEFT, padx=2, pady=2)
 
-        preview_btn = tk.Button(toolbar, text="Preview Receipt", command=preview_receipt)
+        preview_btn = tk.Button(toolbar, text="Preview Receipt")
         preview_btn.pack(side=tk.LEFT, padx=2, pady=2)
 
         # Create table
