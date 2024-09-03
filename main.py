@@ -45,7 +45,9 @@ def add_row():
             "Item 2": item2,
             "Total Price": total_price
         }
-        df = df.append(new_row, ignore_index=True)
+
+        # Append the new row to the DataFrame
+        df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
         save_data(df)
 
         # Close the add row window
