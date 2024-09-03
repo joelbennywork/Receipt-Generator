@@ -88,9 +88,47 @@ def add_row(self):
     submit_button = tk.Button(add_window, text="Submit", command=submit)
     submit_button.grid(row=7, columnspan=2)
 
+# Delete row
 def delete_row():
-    # Implement delete_row functionality
-    pass
+    selected_item = app.tree.selection()  # Get selected item
+    if not selected_item:
+        messagebox.showwarning("Warning", "Please select a row to delete")
+        return
+
+    # Confirm deletion
+    confirm = messagebox.askyesno("Confirm Delete", "Are you sure you want to delete the selected row?")
+    if not confirm:
+        return
+
+    # Get the values of the selected item
+    item_values = app.tree.item(selected_item, "values")
+
+    # Load the current data from the Excel file
+    df = load_data()
+
+    # Find the row in the DataFrame that matches the selected item values
+    row_to_delete = df[(df['First Name'] == item_values[0]) & 
+                       (df['Last Name'] == item_values[1]) & 
+                       (df['Phone Number'] == item_values[2]) & 
+                       (df['Email'] == item_values[3]) & 
+                       (df['Item 1'] == item_values[4]) & 
+                       (df['Item 2'] == item_values[5]) & 
+                       (df['Total Price'] == item_values[6])]
+
+    # Drop the row from the DataFrame
+    df = df.drop(row_to_delete.index)
+
+    # Save the updated DataFrame back to the Excel file
+    try:
+        save_data(df)
+        messagebox.showinfo("Success", "Row deleted successfully from Excel file")
+    except Exception as e:
+        messagebox.showerror("Error", f"Failed to save changes to the Excel file: {e}")
+        return
+
+    # Remove the item from the Treeview
+    app.tree.delete(selected_item)
+
 
 
 # Edit row
@@ -178,7 +216,7 @@ class ReceiptGeneratorApp:
         add_btn = tk.Button(toolbar, text="Add Row", command=lambda: add_row(self))
         add_btn.pack(side=tk.LEFT, padx=2, pady=2)
 
-        delete_btn = tk.Button(toolbar, text="Delete Row", command=lambda: delete_row(self))
+        delete_btn = tk.Button(toolbar, text="Delete Row", command=lambda: delete_row())
         delete_btn.pack(side=tk.LEFT, padx=2, pady=2)
 
         edit_btn = tk.Button(toolbar, text="Edit Row", command=lambda: edit_row(self))
