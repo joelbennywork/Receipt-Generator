@@ -88,13 +88,10 @@ def add_row(self):
     submit_button = tk.Button(add_window, text="Submit", command=submit)
     submit_button.grid(row=7, columnspan=2)
 
-# Delete row
-def delete_row(self):
-    selected_item = self.tree.selection()[0]
-    self.tree.delete(selected_item)
-    df = load_data()
-    df = df.drop(df.index[int(self.tree.index(selected_item))])
-    save_data(df)
+def delete_row():
+    # Implement delete_row functionality
+    pass
+
 
 # Edit row
 def edit_row(self):
