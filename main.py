@@ -32,10 +32,6 @@ def send_to_email():
     # Implement send to email functionality
     pass
 
-# Preview receipt
-def preview_receipt():
-    # Implement preview receipt functionality
-    pass
 
 # Main application
 class ReceiptGeneratorApp:
@@ -57,9 +53,6 @@ class ReceiptGeneratorApp:
 
         send_email_btn = tk.Button(toolbar, text="Send to Email")
         send_email_btn.pack(side=tk.LEFT, padx=2, pady=2)
-
-        preview_btn = tk.Button(toolbar, text="Preview Receipt")
-        preview_btn.pack(side=tk.LEFT, padx=2, pady=2)
 
         # Create table
         self.tree = ttk.Treeview(self.root, columns=("First Name", "Last Name", "Phone Number", "Email", "Item 1", "Item 2", "Total Price"), show='headings')
