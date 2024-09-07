@@ -7,6 +7,7 @@ import pywhatkit as kit
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import os
 
 # Load data from Excel
 def load_data():
@@ -18,8 +19,8 @@ def save_data(df):
     df.to_excel('invoice.xlsx', index=False)
 
 # Generate receipt
-def generate_receipt():
-    # Implement receipt generation functionality
+def generate_receipt(dataframe):
+    #Implement generate invoice functionality
     pass
 
 # Send to phone
@@ -45,7 +46,7 @@ class ReceiptGeneratorApp:
         toolbar = tk.Frame(self.root)
         toolbar.pack(side=tk.TOP, fill=tk.X)
 
-        generate_btn = tk.Button(toolbar, text="Generate Receipts")
+        generate_btn = tk.Button(toolbar, text="Generate Receipts", command=lambda: generate_receipt())
         generate_btn.pack(side=tk.LEFT, padx=2, pady=2)
 
         send_phone_btn = tk.Button(toolbar, text="Send to Phone")
