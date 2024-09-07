@@ -33,6 +33,7 @@ def send_to_email():
     # Implement send to email functionality
     pass
 
+df = load_data()
 
 # Main application
 class ReceiptGeneratorApp:
@@ -46,7 +47,7 @@ class ReceiptGeneratorApp:
         toolbar = tk.Frame(self.root)
         toolbar.pack(side=tk.TOP, fill=tk.X)
 
-        generate_btn = tk.Button(toolbar, text="Generate Receipts", command=lambda: generate_receipt())
+        generate_btn = tk.Button(toolbar, text="Generate Receipts", command=lambda: generate_receipt(df))
         generate_btn.pack(side=tk.LEFT, padx=2, pady=2)
 
         send_phone_btn = tk.Button(toolbar, text="Send to Phone")
