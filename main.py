@@ -20,8 +20,27 @@ def save_data(df):
 
 # Generate receipt
 def generate_receipt(dataframe):
-    #Implement generate invoice functionality
-    pass
+    # Create 'invoices' folder if it doesn't exist
+    if not os.path.exists('invoices'):
+        os.makedirs('invoices')
+
+    # Iterate through each row in the dataframe
+    for index, row in dataframe.iterrows():
+        # Create a new Document
+        doc = Document()
+        
+        # Add content to the document
+        doc.add_heading('Receipt', 0)
+        for column in dataframe.columns:
+            doc.add_paragraph(f'{column}: {row[column]}')
+        
+        # Define the file name using first and last name
+        first_name = row['First Name']
+        last_name = row['Last Name']
+        file_name = f'invoices/{first_name}_{last_name}.docx'
+        
+        # Save the document
+        doc.save(file_name)
 
 # Send to phone
 def send_to_phone():
@@ -33,7 +52,7 @@ def send_to_email():
     # Implement send to email functionality
     pass
 
-df = load_data()
+df =load_data()
 
 # Main application
 class ReceiptGeneratorApp:
